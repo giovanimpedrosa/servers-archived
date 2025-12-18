@@ -8,7 +8,7 @@ COPY package.json /app/package.json
 COPY package-lock.json /app/package-lock.json
 
 RUN npm ci
-RUN npm run build
+RUN npx tsc
 
 FROM node:22-alpine AS release
 
@@ -22,4 +22,4 @@ ENV NODE_ENV=production
 
 RUN npm ci --omit-dev
 
-CMD ["sh", "-c", "node dist/index.js \"$DATABASE_URL\""]
+CMD ["sh", "-c", "echo \"Starting MCP Postgres\" && echo \"DATABASE_URL=$DATABASE_URL\" && node dist/index.js \"$DATABASE_URL\""]
