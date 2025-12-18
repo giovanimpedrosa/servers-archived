@@ -21,4 +21,4 @@ WORKDIR /app
 
 RUN npm ci --ignore-scripts --omit-dev
 
-ENTRYPOINT ["node", "dist/index.js"]
+CMD ["sh", "-c", "node dist/index.js \"$DATABASE_URL\""]
