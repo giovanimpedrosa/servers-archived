@@ -1,25 +1,41 @@
+# =========================
+# Build (TypeScript)
+# =========================
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY src/postgres /app
-COPY tsconfig.json /app/tsconfig.json
-COPY package.json /app/package.json
-COPY package-lock.json /app/package-lock.json
+# Copia arquivos base
+COPY package.json package-lock.json tsconfig.json ./
 
+# Copia TODO o src (obrigatório)
+COPY src ./src
+
+# Instala dependências (inclui devDependencies)
 RUN npm ci
+
+# Compila TypeScript -> dist/
 RUN npx tsc
 
-FROM node:22-alpine AS release
+
+# =========================
+# Runtime
+# =========================
+FROM node:22-alpine AS runtime
 
 WORKDIR /app
 
-COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/package.json /app/package.json
-COPY --from=builder /app/package-lock.json /app/package-lock.json
-
 ENV NODE_ENV=production
 
+# Copia JS compilado
+COPY --from=builder /app/dist ./dist
+
+# Copia package.json para runtime
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/package-lock.json ./
+
+# Instala somente dependências de produção
 RUN npm ci --omit-dev
 
-CMD ["sh", "-c", "echo \"Starting MCP Postgres\" && echo \"DATABASE_URL=$DATABASE_URL\" && node dist/index.js \"$DATABASE_URL\""]
+# MCP Postgres é gerado em: dist/postgres/index.js
+CMD ["sh", "-c", "echo \"Starting MCP Postgres\" && echo \"DATABASE_URL=$DATABASE_URL\" && node dist/postgres/index.js \"$DATABASE_URL\""]
