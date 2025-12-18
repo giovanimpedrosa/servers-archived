@@ -5,7 +5,6 @@ WORKDIR /app
 COPY src/postgres /app
 COPY src/postgres/tsconfig.json /app/tsconfig.json
 COPY src/postgres/package.json /app/package.json
-COPY src/postgres/package-lock.json /app/package-lock.json
 
 RUN npm ci
 RUN npx tsc
